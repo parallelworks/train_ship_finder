@@ -1,5 +1,5 @@
 <tool id='train_ship_finder' name='train_ship_finder'>
-  <command interpreter='parsl'>main.py</command>
+  <command interpreter='parsl'>main_wrapper.py</command>
   <inputs>
     <section name='data_gen' type='section' title='Data Generation' expanded='true'>
         <param name='imgdir' label='Input image directory' type='text' help='Path to directory with PNG images' value='pw:///pw/storage/ships-in-satellite-imagery/data' width='50%_none'></param>
