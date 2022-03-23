@@ -28,7 +28,7 @@ with open('executors.json', 'r') as f:
 @parsl_utils.parsl_wrappers.log_app
 @parsl_utils.parsl_wrappers.stage_app(exec_conf['cpu_executor']['HOST_IP'])
 @bash_app(executors=['cpu_executor'])
-def generate_data(run_dir, gen_script, imgdir, num_samples, max_noise, max_brightness_shift, rotation_range,
+def generate_data(run_dir, path_to_sing, gen_script, imgdir, num_samples, max_noise, max_brightness_shift, rotation_range,
         horizontal_flip, vertical_flip, zca_whitening, inputs_dict = {}, outputs_dict = {}, stdout='std.out', stderr = 'std.err'):
     return '''
         singularity exec --nv -B `pwd`:`pwd` -B {run_dir}:{run_dir} {path_to_sing} /usr/local/bin/python {gen_script} \
@@ -42,7 +42,7 @@ def generate_data(run_dir, gen_script, imgdir, num_samples, max_noise, max_brigh
             --zca_whitening {zca_whitening}
     '''.format(
         run_dir = run_dir,
-        path_to_sing = exec_conf['cpu_executor']['SINGULARITY_CONTAINER_PATH'],
+        path_to_sing = path_to_sing,
         gen_script = gen_script,
         imgdir = imgdir,
         num_samples = num_samples,
@@ -57,7 +57,7 @@ def generate_data(run_dir, gen_script, imgdir, num_samples, max_noise, max_brigh
 @parsl_utils.parsl_wrappers.log_app
 @parsl_utils.parsl_wrappers.stage_app(exec_conf['gpu_executor']['HOST_IP'])
 @bash_app(executors=['gpu_executor'])
-def train_model(run_dir, pyscript, imgdir, epochs, batch_size, learning_rate,
+def train_model(run_dir, path_to_sing, pyscript, imgdir, epochs, batch_size, learning_rate,
                 momentum, model_dir, inputs_dict = {}, outputs_dict = {}, stdout='std.out', stderr = 'std.err'):
     return '''
         singularity exec --nv -B `pwd`:`pwd` -B {run_dir}:{run_dir} {path_to_sing} /usr/local/bin/python {train_script} \
@@ -69,7 +69,7 @@ def train_model(run_dir, pyscript, imgdir, epochs, batch_size, learning_rate,
             --model_dir {model_dir}
     '''.format(
         run_dir = run_dir,
-        path_to_sing = exec_conf['gpu_executor']['SINGULARITY_CONTAINER_PATH'],
+        path_to_sing = path_to_sing,
         train_script = train_script,
         imgdir = imgdir,
         epochs = epochs,
@@ -143,6 +143,7 @@ if __name__ == '__main__':
     # Generate data:
     gen_data_fut = generate_data(
         exec_conf['cpu_executor']['RUN_DIR'],
+        exec_conf['cpu_executor']['SINGULARITY_CONTAINER_PATH'],
         './generate_data.py',
         './ships-in-satellite-imagery', args['num_extra_samples'],
         args['max_noise'], args['max_brightness_shift'], args['rotation_range'],
@@ -162,7 +163,7 @@ if __name__ == '__main__':
         outputs_dict = {
             "imgdir_gen": {
                 "type": "directory",
-                "global_path": args['imgdir_out'],
+                "global_path": args['imgdir_gen'],
                 "worker_path": "{remote_dir}/ships-in-satellite-imagery".format(remote_dir = exec_conf['cpu_executor']['RUN_DIR'])
             }
         }
