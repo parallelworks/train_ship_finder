@@ -12,6 +12,16 @@ from parsl.executors import HighThroughputExecutor
 
 import parsl_utils
 
+def read_args():
+    parser=argparse.ArgumentParser()
+    parsed, unknown = parser.parse_known_args()
+    for arg in unknown:
+        if arg.startswith(("-", "--")):
+            parser.add_argument(arg)
+    pwargs=vars(parser.parse_args())
+    print(pwargs)
+    return pwargs
+
 with open('executors.json', 'r') as f:
     exec_conf = json.load(f)
 
@@ -72,6 +82,7 @@ def train_model(run_dir, pyscript, imgdir, epochs, batch_size, learning_rate,
 
 
 if __name__ == '__main__':
+    args = read_args()
 
     # Add sandbox directory
     for exec_label, exec_conf_i in exec_conf.items():
@@ -84,41 +95,41 @@ if __name__ == '__main__':
     config = Config(
         executors = [
             HighThroughputExecutor(
-                worker_ports = ((int(exec_conf['myexecutor_1']['WORKER_PORT_1']), int(exec_conf['myexecutor_1']['WORKER_PORT_2']))),
-                label = 'myexecutor_1',
+                worker_ports = ((int(exec_conf['gpu_executor']['WORKER_PORT_1']), int(exec_conf['gpu_executor']['WORKER_PORT_2']))),
+                label = 'gpu_executor',
                 worker_debug = True,             # Default False for shorter logs
-                cores_per_worker = int(exec_conf['myexecutor_1']['CORES_PER_WORKER']), # One worker per node
-                worker_logdir_root = exec_conf['myexecutor_1']['WORKER_LOGDIR_ROOT'],  #os.getcwd() + '/parsllogs',
+                cores_per_worker = int(exec_conf['gpu_executor']['CORES_PER_WORKER']), # One worker per node
+                worker_logdir_root = exec_conf['gpu_executor']['WORKER_LOGDIR_ROOT'],  #os.getcwd() + '/parsllogs',
                 provider = LocalProvider(
                     worker_init = 'source {conda_sh}; conda activate {conda_env}; cd {run_dir}'.format(
-                        conda_sh = os.path.join(exec_conf['myexecutor_1']['REMOTE_CONDA_DIR'], 'etc/profile.d/conda.sh'),
-                        conda_env = exec_conf['myexecutor_1']['REMOTE_CONDA_ENV'],
-                        run_dir = exec_conf['myexecutor_1']['RUN_DIR']
+                        conda_sh = os.path.join(exec_conf['gpu_executor']['REMOTE_CONDA_DIR'], 'etc/profile.d/conda.sh'),
+                        conda_env = exec_conf['gpu_executor']['REMOTE_CONDA_ENV'],
+                        run_dir = exec_conf['gpu_executor']['RUN_DIR']
                     ),
                     channel = SSHChannel(
-                        hostname = exec_conf['myexecutor_1']['HOST_IP'],
+                        hostname = exec_conf['gpu_executor']['HOST_IP'],
                         username = os.environ['PW_USER'],
-                        script_dir = exec_conf['myexecutor_1']['SSH_CHANNEL_SCRIPT_DIR'], # Full path to a script dir where generated scripts could be sent to
+                        script_dir = exec_conf['gpu_executor']['SSH_CHANNEL_SCRIPT_DIR'], # Full path to a script dir where generated scripts could be sent to
                         key_filename = '/home/{PW_USER}/.ssh/pw_id_rsa'.format(PW_USER = os.environ['PW_USER'])
                     )
                 )
             ),
             HighThroughputExecutor(
-                worker_ports = ((int(exec_conf['myexecutor_2']['WORKER_PORT_1']), int(exec_conf['myexecutor_2']['WORKER_PORT_2']))),
-                label = 'myexecutor_2',
+                worker_ports = ((int(exec_conf['cpu_executor']['WORKER_PORT_1']), int(exec_conf['cpu_executor']['WORKER_PORT_2']))),
+                label = 'cpu_executor',
                 worker_debug = True,             # Default False for shorter logs
-                cores_per_worker = int(exec_conf['myexecutor_2']['CORES_PER_WORKER']), # One worker per node
-                worker_logdir_root = exec_conf['myexecutor_2']['WORKER_LOGDIR_ROOT'],  #os.getcwd() + '/parsllogs',
+                cores_per_worker = int(exec_conf['cpu_executor']['CORES_PER_WORKER']), # One worker per node
+                worker_logdir_root = exec_conf['cpu_executor']['WORKER_LOGDIR_ROOT'],  #os.getcwd() + '/parsllogs',
                 provider = LocalProvider(
                     worker_init = 'source {conda_sh}; conda activate {conda_env}; cd {run_dir}'.format(
-                        conda_sh = os.path.join(exec_conf['myexecutor_2']['REMOTE_CONDA_DIR'], 'etc/profile.d/conda.sh'),
-                        conda_env = exec_conf['myexecutor_2']['REMOTE_CONDA_ENV'],
-                        run_dir = exec_conf['myexecutor_2']['RUN_DIR']
+                        conda_sh = os.path.join(exec_conf['cpu_executor']['REMOTE_CONDA_DIR'], 'etc/profile.d/conda.sh'),
+                        conda_env = exec_conf['cpu_executor']['REMOTE_CONDA_ENV'],
+                        run_dir = exec_conf['cpu_executor']['RUN_DIR']
                     ),
                     channel = SSHChannel(
-                        hostname = exec_conf['myexecutor_2']['HOST_IP'],
+                        hostname = exec_conf['cpu_executor']['HOST_IP'],
                         username = os.environ['PW_USER'],
-                        script_dir = exec_conf['myexecutor_2']['SSH_CHANNEL_SCRIPT_DIR'], # Full path to a script dir where generated scripts could be sent to
+                        script_dir = exec_conf['cpu_executor']['SSH_CHANNEL_SCRIPT_DIR'], # Full path to a script dir where generated scripts could be sent to
                         key_filename = '/home/{PW_USER}/.ssh/pw_id_rsa'.format(PW_USER = os.environ['PW_USER'])
                     )
                 )
@@ -140,19 +151,19 @@ if __name__ == '__main__':
             "gen_script": {
                 "type": "file",
                 "global_path": "pw://{cwd}/train_ship_finder/generate_data.py",
-                "worker_path": "{remote_dir}/generate_data.py".format(remote_dir = args['remote_dir'])
+                "worker_path": "{remote_dir}/generate_data.py".format(remote_dir =  exec_conf['cpu_executor']['RUN_DIR'])
             },
             "imgdir": {
                 "type": "directory",
                 "global_path": args['imgdir'],
-                "worker_path": "{remote_dir}/ships-in-satellite-imagery".format(remote_dir = args['remote_dir'])
+                "worker_path": "{remote_dir}/ships-in-satellite-imagery".format(remote_dir = exec_conf['cpu_executor']['RUN_DIR'])
             },
         },
         outputs_dict = {
             "imgdir_gen": {
                 "type": "directory",
                 "global_path": args['imgdir_out'],
-                "worker_path": "{remote_dir}/ships-in-satellite-imagery".format(remote_dir = args['remote_dir'])
+                "worker_path": "{remote_dir}/ships-in-satellite-imagery".format(remote_dir = exec_conf['cpu_executor']['RUN_DIR'])
             }
         }
     )
