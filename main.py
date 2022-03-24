@@ -60,7 +60,7 @@ def generate_data(run_dir, path_to_sing, gen_script, imgdir, num_samples, max_no
 @parsl_utils.parsl_wrappers.stage_app(exec_conf['gpu_executor']['HOST_IP'])
 @bash_app(executors=['gpu_executor'])
 def train_model(run_dir, path_to_sing, train_script, imgdir, epochs, patience, batch_size, learning_rate,
-                momentum, model_dir, inputs_dict = {}, outputs_dict = {}, stdout='std.out', stderr = 'std.err'):
+                momentum, model_dir, pw_job_dir, inputs_dict = {}, outputs_dict = {}, stdout='std.out', stderr = 'std.err'):
     return '''
         nvidia-smi
         cd {run_dir}
@@ -73,6 +73,7 @@ def train_model(run_dir, path_to_sing, train_script, imgdir, epochs, patience, b
             --momentum {momentum} \
             --model_dir {model_dir} \
             --min_ship_score 0.5 \
+            --pw_job_dir {pw_job_dir} \
     '''.format(
         run_dir = run_dir,
         path_to_sing = path_to_sing,
@@ -83,7 +84,8 @@ def train_model(run_dir, path_to_sing, train_script, imgdir, epochs, patience, b
         batch_size = batch_size,
         learning_rate = learning_rate,
         momentum = momentum,
-        model_dir = model_dir
+        model_dir = model_dir,
+        pw_job_dir = pw_job_dir
     )
 
 
@@ -192,9 +194,9 @@ if __name__ == '__main__':
         exec_conf['gpu_executor']['RUN_DIR'],
         exec_conf['gpu_executor']['SINGULARITY_CONTAINER_PATH'],
         './train.py',
-        os.path.basename(args['imgdir_gen']),
-        args['epochs'], args['patience'], args['batch_size'], args['learning_rate'], args['momentum'],
-        os.path.basename(args['model_dir']),
+        os.path.basename(args['imgdir_gen']), args['epochs'], args['patience'],
+        args['batch_size'], args['learning_rate'], args['momentum'],
+        os.path.basename(args['model_dir']), os.getcwd(),
         inputs_dict = {
             "train_script": {
                 "type": "file",

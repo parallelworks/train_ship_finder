@@ -140,7 +140,7 @@ def plot_confusion_matrix(cm, classes,
         plt.savefig(path, dpi = 500)
 
 # Create dataframe for design explorer
-def create_dex_df(Y, Y_pred, data_set, paths, min_ship_score):
+def create_dex_df(Y, Y_pred, data_set, paths, min_ship_score, pw_job_dir):
     Y_pred_class = np.argmax( (Y_pred > min_ship_score), axis = 1)
     Y_class = np.argmax( (Y > min_ship_score), axis = 1)
 
@@ -150,7 +150,7 @@ def create_dex_df(Y, Y_pred, data_set, paths, min_ship_score):
             'in:True-Class': [ 'Ship' if y > 0.5 else 'No Ship' for y in Y_class ],
             'out:Predicted-Class': [ 'Ship' if y > 0.5 else 'No Ship' for y in Y_pred_class ],
             'out:Score': Y_pred[:, 1],
-            'img:Image': paths
+            'img:Image': [ os.path.join(pw_job_dir, p) for p in paths ]
         }
     )
     return df
@@ -202,14 +202,32 @@ if __name__ == '__main__':
     plot_confusion_matrix(confusion_mtx, classes = ['No Ship', 'Ship'], path = os.path.join(args['model_dir'], 'confusion_matrix.png'))
 
     # Design explorer:
+    print('Creating CSV file for Design Explorer', flush = True)
     df_dex = pd.concat(
         [
-            create_dex_df(Y_train, Y_train_pred, 'Train', paths_train, min_ship_score),
-            create_dex_df(Y_valid, Y_valid_pred, 'Validation', paths_valid, min_ship_score),
-            create_dex_df(Y_test, Y_test_pred, 'Test', paths_test, min_ship_score)
+            create_dex_df(Y_train, Y_train_pred, 'Train',      paths_train, min_ship_score, args['pw_job_dir']),
+            create_dex_df(Y_valid, Y_valid_pred, 'Validation', paths_valid, min_ship_score, args['pw_job_dir']),
+            create_dex_df(Y_test,  Y_test_pred,  'Test',       paths_test, min_ship_score,  args['pw_job_dir'])
         ]
     )
     print(df_dex)
     df_dex.to_csv(os.path.join(args['model_dir'], 'dex.csv'), index = False)
 
+    print('Creating HTML file for Design Explorer', flush = True)
+    dex_html = open(os.path.join(args['model_dir'], 'dex.html'), 'w')
+    dex_html.write(
+        '''
+        <html style="overflow-y:hidden;background:white"><a
+            style="font-family:sans-serif;z-index:1000;position:absolute;top:15px;right:0px;margin-right:20px;font-style:italic;font-size:10px"
+            href="/preview/DesignExplorer/index.html?datafile={csv}&colorby=Score"
+            target="_blank">Open in New Window
+        </a><iframe
+            width="100%"
+            height="100%"
+            src="/preview/DesignExplorer/index.html?datafile={csv}&colorby=Score"
+            frameborder="0">
+        </iframe></html>
+        '''.format(csv = os.path.join(args['pw_job_dir'], args['model_dir'], 'dex.csv'))
+    )
+    dex_html.close()
 
