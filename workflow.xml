@@ -2,15 +2,15 @@
   <command interpreter='parsl'>main_wrapper.py</command>
   <inputs>
     <section name='data_gen' type='section' title='Data Generation' expanded='true'>
-        <param name='imgdir' label='Input image directory' type='text' help='Path to directory with PNG images' value='pw:///pw/storage/ships-in-satellite-imagery/data' width='50%_none'></param>
-        <param name='imgdir_gen' label='Output image directory' type='text' help='Path to directory with PNG images' value='pw://{cwd}/data-gen' width='50%_none'></param>
+        <param name='imgdir' label='Input image directory' type='text' help='Path to directory with PNG images' value='pw:///pw/storage/ships-in-satellite-imagery/shipsnet' width='50%_none'></param>
+        <param name='imgdir_gen' label='Output image directory' type='text' help='Path to directory with PNG images' value='pw://{cwd}/shipsnet' width='50%_none'></param>
         <param name='num_extra_samples' label='Number of extra samples' type='integer' min='1000' max='100000' step='1000' help='Extra samples are added to the original images' value='10000' width='50%_none%' optional='true'></param>
         <param name='max_noise' label='Amplitude of noise' type='integer' min='0' max='250' step='25' help='Random noise is added to the original images' value='150' width='50%_none%' optional='true'></param>
         <param name='rotation_range' label='Rotation range' type='integer' min='0' max='360' value='359' help='Int. Degree range for random rotations.' width='50%_none%' optional='true'></param>
         <param name='max_brightness_shift' label='Maximum brightness shift' type='text' help='Max value for random brightness shift' value='1' width='50%_none'></param>
         <param name="horizontal_flip" type="boolean" truevalue="True" falsevalue="False" checked="True" label="Horizontal flip" help='Randomly flip inputs horizontally' width="25%" optional='true' float="right"/>
         <param name="vertical_flip" type="boolean" truevalue="True" falsevalue="False" checked="True" label="Vertical flip" help='Randomly flip inputs vertically' width="25%" optional='true' float="right"/>
-        <param name="zca_whitening" type="boolean" truevalue="True" falsevalue="False" checked="True" label="ZCA whitening" help='Apply ZCA whitening' width="25%_none" optional='true' float="right"/>
+        <param name="zca_whitening" type="boolean" truevalue="True" falsevalue="False" checked="False" label="ZCA whitening" help='Apply ZCA whitening. This option increases runtime' width="25%_none" optional='true' float="right"/>
     </section>
     <section name='training' type='section' title='Model Training' expanded='true'>
         <param name='model_dir' label='Model directory' type='text' help='Path model directory with saved model and model metrics' value='pw://{cwd}/model_dir' width='50%_none'></param>

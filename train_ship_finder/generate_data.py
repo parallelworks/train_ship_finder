@@ -57,25 +57,33 @@ def load_data(imgdir):
 
 def add_noise(X, max_noise = max_noise):
     return X + randint(0, max_noise) * np.random.rand(X.shape[0], X.shape[1], X.shape[2])
-    
 
- 
+def str2bool(x):
+    if x == 'True':
+        return True
+    else:
+        return False
+
+
 if __name__ == '__main__':
 
     batch_size = 100 #int(args['batch_size'])
     num_samples = int(args['num_samples'])
-    
+
     # Load training data:
     imgs, imgs_label, img_paths = load_data(args['imgdir'])
-    # preprocessing_function	
+    # preprocessing_function
     datagen = ImageDataGenerator(
         brightness_range = [0, float(args['max_brightness_shift'])],
         rotation_range = int(args['rotation_range']),
-        horizontal_flip = bool(args['horizontal_flip']),
-        vertical_flip = bool(args['vertical_flip']),
-        zca_whitening = bool(args['zca_whitening']),
+        horizontal_flip = str2bool(args['horizontal_flip']),
+        vertical_flip = str2bool(args['vertical_flip']),
+        zca_whitening = str2bool(args['zca_whitening']),
         preprocessing_function = add_noise
     )
+    if str2bool(args['zca_whitening']):
+        datagen.fit(imgs)
+
     it = datagen.flow(imgs, y = imgs_label, batch_size = batch_size)
 
     for i in range(int(num_samples/batch_size)):

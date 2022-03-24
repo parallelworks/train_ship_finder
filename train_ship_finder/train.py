@@ -24,6 +24,9 @@ from PIL import ImageDraw
 from PIL import ImageFont
 from PIL import ImageOps
 
+print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
+print(tf.config.list_physical_devices('GPU'))
+
 def read_args():
     parser=argparse.ArgumentParser()
     parsed, unknown = parser.parse_known_args()
@@ -35,6 +38,8 @@ def read_args():
     return pwargs
 
 np.random.seed(42)
+
+mirrored_strategy = tf.distribute.MirroredStrategy(devices = ["GPU:0"])
 
 def define_model():
     # network design
@@ -57,16 +62,16 @@ def define_model():
     model.add(Dense(2, activation='softmax'))
     return model
 
-def compile_model(model, args):
+def compile_model(model, learning_rate, momentum):
     # optimization setup
-     sgd = SGD(learning_rate = float(args['learning_rate']), momentum = float(args['momentum']), nesterov=True)
+     sgd = SGD(learning_rate = learning_rate, momentum = momentum, nesterov=True)
      model.compile(
          loss='categorical_crossentropy',
          optimizer=sgd,
          metrics=['accuracy']
      )
      return model
-     
+
 
 def tf_load_img(path):
     print(datetime.now(), 'Loading: ', path, flush = True)
@@ -89,7 +94,7 @@ def load_data(imgdir):
 
     # output encoding
     y = np_utils.to_categorical(imgs_label, 2)
-    
+
     # Shuffle all indexes:
     indexes = np.arange(imgs.shape[0])
     np.random.shuffle(indexes)
@@ -138,7 +143,7 @@ def plot_confusion_matrix(cm, classes,
 def create_dex_df(Y, Y_pred, data_set, paths, min_ship_score):
     Y_pred_class = np.argmax( (Y_pred > min_ship_score), axis = 1)
     Y_class = np.argmax( (Y > min_ship_score), axis = 1)
-    
+
     df = pd.DataFrame(
         {
             'in:Data-Set': [ data_set for i in Y_class ],
@@ -149,21 +154,22 @@ def create_dex_df(Y, Y_pred, data_set, paths, min_ship_score):
         }
     )
     return df
-        
- 
+
+
 if __name__ == '__main__':
     args = read_args()
     min_ship_score = float(args['min_ship_score'])
-    
+
     os.makedirs(args['model_dir'], exist_ok = True)
 
     # Load training data:
     X_train, Y_train, paths_train, X_test, Y_test, paths_test, X_valid, Y_valid, paths_valid = load_data(args['imgdir'])
-    
+
     # Train:
-    model = define_model()
-    model = compile_model(model, args)
-    
+    with mirrored_strategy.scope():
+        model = define_model()
+        model = compile_model(model, float(args['learning_rate']), float(args['momentum']))
+
     early_stopping_cb = keras.callbacks.EarlyStopping(patience = int(args['patience']), restore_best_weights = True)
 
     history = model.fit(
@@ -188,7 +194,7 @@ if __name__ == '__main__':
     Y_train_pred = model.predict(X_train)
     Y_valid_pred = model.predict(X_valid)
     Y_test_pred = model.predict(X_test)
-    
+
     Y_test_pred_class = np.argmax( (Y_test_pred > min_ship_score), axis = 1)
     Y_test_class = np.argmax( (Y_test > min_ship_score), axis = 1)
 
@@ -206,4 +212,4 @@ if __name__ == '__main__':
     print(df_dex)
     df_dex.to_csv(os.path.join(args['model_dir'], 'dex.csv'), index = False)
 
-    
+

@@ -6,7 +6,7 @@
         "RUN_DIR": "/contrib/Alvaro.Vidal/tmp",
         "WORKER_LOGDIR_ROOT": "/contrib/Alvaro.Vidal/tmp",
         "SSH_CHANNEL_SCRIPT_DIR": "/contrib/Alvaro.Vidal/tmp",
-        "SINGULARITY_CONTAINER_PATH": "/contrib/Alvaro.Vidal/tensorflow_latest-gpu-jupyter.sif",
+        "SINGULARITY_CONTAINER_PATH": "/contrib/Alvaro.Vidal/tensorflow_latest-gpu-jupyter-extra.sif",
         "CORES_PER_WORKER": 4
     },
     "gpu_executor": {
@@ -16,7 +16,7 @@
         "RUN_DIR": "/contrib/Alvaro.Vidal/tmp",
         "WORKER_LOGDIR_ROOT": "/contrib/Alvaro.Vidal/tmp",
         "SSH_CHANNEL_SCRIPT_DIR": "/contrib/Alvaro.Vidal/tmp",
-        "SINGULARITY_CONTAINER_PATH": "/contrib/Alvaro.Vidal/tensorflow_latest-gpu-jupyter.sif",
+        "SINGULARITY_CONTAINER_PATH": "/contrib/Alvaro.Vidal/tensorflow_latest-gpu-jupyter-extra.sif",
         "CORES_PER_WORKER": 4
     }
 }
