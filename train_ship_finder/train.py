@@ -210,7 +210,8 @@ if __name__ == '__main__':
             create_dex_df(Y_test,  Y_test_pred,  'Test',       paths_test, min_ship_score,  args['pw_job_dir'])
         ]
     )
-    print(df_dex)
+    # FIXME:
+    df_dex = df_dex.sample(n = 1000)
     df_dex.to_csv(os.path.join(args['model_dir'], 'dex.csv'), index = False)
 
     print('Creating HTML file for Design Explorer', flush = True)
