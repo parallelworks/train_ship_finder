@@ -10,6 +10,9 @@ from parsl.channels import SSHChannel
 from parsl.providers import LocalProvider
 from parsl.executors import HighThroughputExecutor
 
+from parsl.addresses import address_by_hostname
+from parsl.monitoring.monitoring import MonitoringHub
+
 import parsl_utils
 
 def read_args():
@@ -62,9 +65,13 @@ def generate_data(run_dir, path_to_sing, gen_script, imgdir, num_samples, max_no
 def train_model(run_dir, path_to_sing, train_script, imgdir, epochs, patience, batch_size, learning_rate,
                 momentum, model_dir, pw_job_dir, inputs_dict = {}, outputs_dict = {}, stdout='std.out', stderr = 'std.err'):
     return '''
+        # start the fabric manager for gpu access
+        systemctl start nvidia-fabricmanager
+
         nvidia-smi
         cd {run_dir}
-        singularity exec --nv -B `pwd`:`pwd` -B {run_dir}:{run_dir} {path_to_sing} /usr/local/bin/python {train_script} \
+
+        singularity exec --nv -B `pwd`:`pwd` -B /usr/share/nvidia/:/usr/share/nvidia -B /usr/bin/nvidia-smi:/usr/bin/nvidia-smi -B {run_dir}:{run_dir} {path_to_sing} /usr/local/bin/python {train_script} \
             --imgdir {imgdir} \
             --epochs {epochs} \
             --batch_size {batch_size} \
@@ -143,7 +150,11 @@ if __name__ == '__main__':
                     )
                 )
             )
-        ]
+        ],
+        monitoring = MonitoringHub(
+           hub_address = address_by_hostname(),
+           resource_monitoring_interval = 5,
+       ),
     )
 
     print('Loading Parsl Config', flush = True)
