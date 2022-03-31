@@ -1,4 +1,4 @@
-import sys, os, json, time
+import sys, os, json, time, glob
 from random import randint
 import argparse
 
@@ -24,6 +24,19 @@ def read_args():
     pwargs=vars(parser.parse_args())
     print(pwargs)
     return pwargs
+
+def imgs2html(d, ext, width = 500):
+    html_line = '<img src=\"{path}\" width=\"{width}\" alt=\"{name}\" >\n'
+    html_f = open(os.path.join(d, os.path.basename(d) + '.html'), 'w')
+    for img in glob.glob(os.path.join(d, '*.' + ext)):
+        html_f.write(
+            html_line.format(
+                path = os.path.basename(img),
+                name = os.path.basename(img).split('.')[0],
+                width = str(width)
+            )
+        )
+    html_f.close()
 
 with open('executors.json', 'r') as f:
     exec_conf = json.load(f)
@@ -118,8 +131,8 @@ if __name__ == '__main__':
                 worker_logdir_root = exec_conf['gpu_executor']['WORKER_LOGDIR_ROOT'],  #os.getcwd() + '/parsllogs',
                 provider = LocalProvider(
                     worker_init = 'source {conda_sh}; conda activate {conda_env}; cd {run_dir}'.format(
-                        conda_sh = os.path.join(exec_conf['gpu_executor']['REMOTE_CONDA_DIR'], 'etc/profile.d/conda.sh'),
-                        conda_env = exec_conf['gpu_executor']['REMOTE_CONDA_ENV'],
+                        conda_sh = os.path.join(exec_conf['gpu_executor']['CONDA_DIR'], 'etc/profile.d/conda.sh'),
+                        conda_env = exec_conf['gpu_executor']['CONDA_ENV'],
                         run_dir = exec_conf['gpu_executor']['RUN_DIR']
                     ),
                     channel = SSHChannel(
@@ -138,8 +151,8 @@ if __name__ == '__main__':
                 worker_logdir_root = exec_conf['cpu_executor']['WORKER_LOGDIR_ROOT'],  #os.getcwd() + '/parsllogs',
                 provider = LocalProvider(
                     worker_init = 'source {conda_sh}; conda activate {conda_env}; cd {run_dir}'.format(
-                        conda_sh = os.path.join(exec_conf['cpu_executor']['REMOTE_CONDA_DIR'], 'etc/profile.d/conda.sh'),
-                        conda_env = exec_conf['cpu_executor']['REMOTE_CONDA_ENV'],
+                        conda_sh = os.path.join(exec_conf['cpu_executor']['CONDA_DIR'], 'etc/profile.d/conda.sh'),
+                        conda_env = exec_conf['cpu_executor']['CONDA_ENV'],
                         run_dir = exec_conf['cpu_executor']['RUN_DIR']
                     ),
                     channel = SSHChannel(
@@ -238,3 +251,12 @@ if __name__ == '__main__':
     )
 
     train_model_fut.result()
+
+    if args['model_dir'].startswith('pw://'):
+        print('\nCreating HTML wrapper around model PNGs', flush = True)
+        imgs2html(
+            args['model_dir'].split(':')[1].format(
+                cwd = os.getcwd()
+            ),
+            'png'
+        )

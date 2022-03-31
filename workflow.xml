@@ -2,23 +2,38 @@
   <command interpreter='parsl'>main_wrapper.py</command>
   <inputs>
     <section name='data_gen' type='section' title='Data Generation / Transformation (Xpatch / Matlab)' expanded='true'>
-        <param name='imgdir' label='Input image directory' type='text' help='Path to directory with PNG images' value='pw:///pw/storage/ships-in-satellite-imagery/shipsnet' width='50%_none'></param>
-        <param name='imgdir_gen' label='Output image directory' type='text' help='Path to directory with PNG images' value='pw://{cwd}/shipsnet' width='50%_none'></param>
-        <param name='num_extra_samples' label='Number of extra samples' type='integer' min='1000' max='100000' step='1000' help='Extra samples are added to the original images' value='1000' width='50%_none%' optional='true'></param>
-        <param name='max_noise' label='Amplitude of noise' type='integer' min='0' max='250' step='25' help='Random noise is added to the original images' value='150' width='50%' optional='true'></param>
-        <param name='rotation_range' label='Rotation range' type='integer' min='0' max='360' value='359' help='Int. Degree range for random rotations.' width='50%' optional='true'></param>
-        <param name='max_brightness_shift' label='Maximum brightness shift' type='text' help='Max value for random brightness shift' value='1' width='50%'></param>
-        <param name="horizontal_flip" type="boolean" truevalue="True" falsevalue="False" checked="True" label="Horizontal flip" help='Randomly flip inputs horizontally' width="25%" optional='true' float="right"/>
-        <param name="vertical_flip" type="boolean" truevalue="True" falsevalue="False" checked="True" label="Vertical flip" help='Randomly flip inputs vertically' width="25%" optional='true' float="right"/>
-        <param name="zca_whitening" type="boolean" truevalue="True" falsevalue="False" checked="False" label="ZCA whitening" help='Apply ZCA whitening. This option increases runtime' width="25%_none" optional='true' float="right"/>
+      <param name='imgdir' label='Input image directory' type='text' help='Path to directory with PNG images' value='pw:///pw/storage/ships-in-satellite-imagery/shipsnet' width='50%_none'>
+      </param>
+      <param name='imgdir_gen' label='Output image directory' type='text' help='Path to directory with PNG images' value='pw://{cwd}/shipsnet' width='50%_none'>
+      </param>
+      <param name='num_extra_samples' label='Number of extra samples' type='integer' min='1000' max='100000' step='1000' help='Extra samples are added to the original images' value='1000' width='50%_none%' optional='true'>
+      </param>
+      <param name='max_noise' label='Amplitude of noise' type='integer' min='0' max='250' step='25' help='Random noise is added to the original images' value='150' width='50%' optional='true'>
+      </param>
+      <param name='rotation_range' label='Rotation range' type='integer' min='0' max='360' value='359' help='Int. Degree range for random rotations.' width='50%' optional='true'>
+      </param>
+      <param name='max_brightness_shift' label='Maximum brightness shift' type='text' help='Max value for random brightness shift' value='1' width='50%'>
+      </param>
+      <param name='horizontal_flip' type='boolean' truevalue='True' falsevalue='False' checked='True' label='Horizontal flip' help='Randomly flip inputs horizontally' width='25%' optional='true' float='right'>
+      </param>
+      <param name='vertical_flip' type='boolean' truevalue='True' falsevalue='False' checked='True' label='Vertical flip' help='Randomly flip inputs vertically' width='25%' optional='true' float='right'>
+      </param>
+      <param name='zca_whitening' type='boolean' truevalue='True' falsevalue='False' checked='False' label='ZCA whitening' help='Apply ZCA whitening. This option increases runtime' width='25%_none' optional='true' float='right'>
+      </param>
     </section>
     <section name='training' type='section' title='Model Training (Neural Network)' expanded='false'>
-        <param name='model_dir' label='Model directory' type='text' help='Path model directory with saved model and model metrics' value='pw://{cwd}/model_dir' width='50%_none'></param>
-        <param name='epochs' label='Max epochs' type='integer' min='10' max='1000' step='10' value='100' help='Maximum number of epochs if validation loss keeps improving' width='50%_none%' optional='true'></param>
-        <param name='patience' label='Patience' type='integer' min='1' max='20' step='1' value='10' help='Number of epochs with no improvement after which training will be stopped' width='50%' optional='true'></param>
-        <param name='batch_size' label='Batch size' type='integer' min='8' max='512' step='8' value='32' help='Batch size for ML model' width='50%' optional='true'></param>
-        <param name='learning_rate' label='Learning rate' type='text' help='Learning rate for SGD optimizer' value='0.01' width='50%'></param>
-        <param name='momentum' label='Momentum' type='text' help='Momentum for SGD optimizer' value='0.01' width='50%'></param>
+      <param name='model_dir' label='Model directory' type='text' help='Path model directory with saved model and model metrics' value='pw://{cwd}/model_dir' width='50%_none'>
+      </param>
+      <param name='epochs' label='Max epochs' type='integer' min='10' max='1000' step='10' value='100' help='Maximum number of epochs if validation loss keeps improving' width='50%_none%' optional='true'>
+      </param>
+      <param name='patience' label='Patience' type='integer' min='1' max='20' step='1' value='10' help='Number of epochs with no improvement after which training will be stopped' width='50%' optional='true'>
+      </param>
+      <param name='batch_size' label='Batch size' type='integer' min='8' max='512' step='8' value='32' help='Batch size for ML model' width='50%' optional='true'>
+      </param>
+      <param name='learning_rate' label='Learning rate' type='text' help='Learning rate for SGD optimizer' value='0.01' width='50%'>
+      </param>
+      <param name='momentum' label='Momentum' type='text' help='Momentum for SGD optimizer' value='0.01' width='50%'>
+      </param>
     </section>
   </inputs>
   <outputs>
