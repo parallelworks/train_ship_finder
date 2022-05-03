@@ -9,21 +9,21 @@
         "SINGULARITY_CONTAINER_PATH": "/contrib/Alvaro.Vidal/tensorflow_latest-gpu-jupyter-extra.sif",
         "CORES_PER_WORKER": 4,
         "CREATE_SINGULARITY_CONTAINER": "true",
-        "INSTALL_CONDA": "false",
+        "INSTALL_CONDA": "true",
         "LOCAL_CONDA_YAML": "./requirements/conda_env.yaml",
         "LOCAL_SINGULARITY_FILE": "./requirements/singularity.file"
     },
     "gpu_executor": {
         "POOL": "google_gpu",
         "CONDA_ENV": "parsl_py39",
-        "CONDA_DIR": "/home/Alvaro.Vidal/miniconda3",
+        "CONDA_DIR": "/contrib/Alvaro.Vidal/miniconda3",
         "RUN_DIR": "/home/Alvaro.Vidal/tmp",
         "WORKER_LOGDIR_ROOT": "/home/Alvaro.Vidal/tmp",
         "SSH_CHANNEL_SCRIPT_DIR": "/home/Alvaro.Vidal/tmp",
         "SINGULARITY_CONTAINER_PATH": "/contrib/Alvaro.Vidal/tensorflow_latest-gpu-jupyter-extra.sif",
         "CORES_PER_WORKER": 4,
         "CREATE_SINGULARITY_CONTAINER": "true",
-        "INSTALL_CONDA": "false",
+        "INSTALL_CONDA": "true",
         "LOCAL_CONDA_YAML": "./requirements/conda_env.yaml",
         "LOCAL_SINGULARITY_FILE": "./requirements/singularity.file"
     }

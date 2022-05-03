@@ -15,6 +15,7 @@ from parsl.monitoring.monitoring import MonitoringHub
 
 import parsl_utils
 
+
 def read_args():
     parser=argparse.ArgumentParser()
     parsed, unknown = parser.parse_known_args()
@@ -38,11 +39,14 @@ def imgs2html(d, ext, width = 500):
         )
     html_f.close()
 
+# Job runs in directory /pw/jobs/job-number
+job_number = os.path.basename(os.getcwd())
+
 with open('executors.json', 'r') as f:
     exec_conf = json.load(f)
 
 @parsl_utils.parsl_wrappers.log_app
-@parsl_utils.parsl_wrappers.stage_app(exec_conf['cpu_executor']['HOST_IP'])
+@parsl_utils.parsl_wrappers.stage_app(exec_conf['cpu_executor']['HOST_USER'] + '@' + exec_conf['cpu_executor']['HOST_IP'])
 @bash_app(executors=['cpu_executor'])
 def generate_data(run_dir, path_to_sing, gen_script, imgdir, num_samples, max_noise, max_brightness_shift, rotation_range,
         horizontal_flip, vertical_flip, zca_whitening, inputs_dict = {}, outputs_dict = {}, stdout='std.out', stderr = 'std.err'):
@@ -73,7 +77,7 @@ def generate_data(run_dir, path_to_sing, gen_script, imgdir, num_samples, max_no
 
 
 @parsl_utils.parsl_wrappers.log_app
-@parsl_utils.parsl_wrappers.stage_app(exec_conf['gpu_executor']['HOST_IP'])
+@parsl_utils.parsl_wrappers.stage_app(exec_conf['gpu_executor']['HOST_USER'] + '@' + exec_conf['gpu_executor']['HOST_IP'])
 @bash_app(executors=['gpu_executor'])
 def train_model(run_dir, path_to_sing, train_script, imgdir, epochs, patience, batch_size, learning_rate,
                 momentum, model_dir, pw_job_dir, inputs_dict = {}, outputs_dict = {}, stdout='std.out', stderr = 'std.err'):
@@ -116,10 +120,10 @@ if __name__ == '__main__':
     # Add sandbox directory
     for exec_label, exec_conf_i in exec_conf.items():
         if 'RUN_DIR' in exec_conf_i:
-            exec_conf[exec_label]['RUN_DIR'] = os.path.join(exec_conf_i['RUN_DIR'], 'run-' + str(randint(0, 99999)).zfill(5))
+            exec_conf[exec_label]['RUN_DIR'] = os.path.join(exec_conf_i['RUN_DIR'], str(job_number))
         else:
-            base_dir = '/contrib/{PW_USER}/tmp'.format(PW_USER = os.environ['PW_USER'])
-            exec_conf[exec_label]['RUN_DIR'] = os.path.join(base_dir, 'run-' + str(randint(0, 99999)).zfill(5))
+            base_dir = '/tmp'
+            exec_conf[exec_label]['RUN_DIR'] = os.path.join(base_dir, str(job_number))
 
     config = Config(
         executors = [
@@ -137,7 +141,7 @@ if __name__ == '__main__':
                     ),
                     channel = SSHChannel(
                         hostname = exec_conf['gpu_executor']['HOST_IP'],
-                        username = os.environ['PW_USER'],
+                        username = exec_conf['cpu_executor']['HOST_USER'],
                         script_dir = exec_conf['gpu_executor']['SSH_CHANNEL_SCRIPT_DIR'], # Full path to a script dir where generated scripts could be sent to
                         key_filename = '/home/{PW_USER}/.ssh/pw_id_rsa'.format(PW_USER = os.environ['PW_USER'])
                     )
@@ -157,7 +161,7 @@ if __name__ == '__main__':
                     ),
                     channel = SSHChannel(
                         hostname = exec_conf['cpu_executor']['HOST_IP'],
-                        username = os.environ['PW_USER'],
+                        username = exec_conf['cpu_executor']['HOST_USER'],
                         script_dir = exec_conf['cpu_executor']['SSH_CHANNEL_SCRIPT_DIR'], # Full path to a script dir where generated scripts could be sent to
                         key_filename = '/home/{PW_USER}/.ssh/pw_id_rsa'.format(PW_USER = os.environ['PW_USER'])
                     )
